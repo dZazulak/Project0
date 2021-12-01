@@ -18,7 +18,11 @@ class CustomerPostgresService(CustomerService):
         return created_customer
 
     def service_get_customer_by_id(self, customer_id: int) -> Customer:
-        return self.customer_dao.get_customer_by_id(customer_id)
+        customer_list = self.customer_dao.get_all_customers()
+        for existing_customer in customer_list:
+            if existing_customer.customer_id == customer_id:
+                return self.customer_dao.get_customer_by_id(customer_id)
+        raise CustomerNotFoundException("This customer could not be found in the database")
 
     def service_get_all_customers(self) -> list[Customer]:
         return self.customer_dao.get_all_customers()
@@ -26,16 +30,17 @@ class CustomerPostgresService(CustomerService):
     def service_update_customer_by_id(self, customer: Customer) -> Customer:
         customer_list = self.customer_dao.get_all_customers()
         for current_customer in customer_list:
-            # if current_customer.customer_id == customer.customer_id:
-            #     return self.customer_dao.update_customer_by_id(customer)
-            # elif current_customer.customer_id != customer.customer_id and current_customer.customer_id > len(customer_list):
-            #     return self.customer_dao.update_customer_by_id(customer)
-            # else:
-            #     raise CustomerNotFoundException("This customer could not be found in the database")
-            if current_customer.customer_id != customer.customer_id and current_customer.customer_id < customer.customer_id:
+            if current_customer.customer_id != customer.customer_id and customer.customer_id >= current_customer.customer_id:
                 raise CustomerNotFoundException("This customer could not be found in the database")
             else:
                 return self.customer_dao.update_customer_by_id(customer)
+
+    # if current_customer.customer_id == customer.customer_id:
+    #     return self.customer_dao.update_customer_by_id(customer)
+    # elif current_customer.customer_id != customer.customer_id and current_customer.customer_id > len(customer_list):
+    #     return self.customer_dao.update_customer_by_id(customer)
+    # else:
+    #     raise CustomerNotFoundException("This customer could not be found in the database")
 
     def service_delete_customer_by_id(self, customer_id: int) -> bool:
         return self.customer_dao.delete_customer_by_id(customer_id)
