@@ -32,7 +32,7 @@ class CustomerPostgresService(CustomerService):
             #     return self.customer_dao.update_customer_by_id(customer)
             # else:
             #     raise CustomerNotFoundException("This customer could not be found in the database")
-            if current_customer.customer_id != customer.customer_id and current_customer.customer_id > customer.customer_id:
+            if current_customer.customer_id != customer.customer_id and current_customer.customer_id < customer.customer_id:
                 raise CustomerNotFoundException("This customer could not be found in the database")
             else:
                 return self.customer_dao.update_customer_by_id(customer)
