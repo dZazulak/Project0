@@ -18,12 +18,16 @@ class AccountDAO(ABC):
         pass
 
     @abstractmethod
-    def deposit_into_account_by_id(self, account: Account) -> Account:
+    def update_account_balance_by_account_id(self, account: Account) -> Account:
         pass
 
-    @abstractmethod
-    def withdraw_from_account_by_id(self, account: Account) -> Account:
-        pass
+    # @abstractmethod
+    # def deposit_into_account_by_id(self, account: Account) -> Account:
+    #     pass
+    #
+    # @abstractmethod
+    # def withdraw_from_account_by_id(self, account: Account) -> Account:
+    #     pass
 
     @abstractmethod
     def transfer_money_between_accounts_by_their_ids(self, account: Account) -> Account:
