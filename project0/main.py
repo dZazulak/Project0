@@ -2,20 +2,28 @@ from flask import Flask, request, jsonify
 
 from custom_exceptions.duplicate_customer_id_exception import DuplicateCustomerIdException
 from custom_exceptions.customer_not_found_exception import CustomerNotFoundException
+from custom_exceptions.account_not_found_exception import AccountNotFoundException
+from custom_exceptions.duplicate_account_id_exception import DuplicateAccountIdException
+from data_access_layer.implementation_classes.account_postgres_dao import AccountPostgresDAO
 from data_access_layer.implementation_classes.customer_dao_imp import CustomerDAOImp
-# from data_access_layer.implementation_classes.account_dao_imp import AccountDAOImp
+from data_access_layer.implementation_classes.account_dao_imp import AccountDAOImp
 from data_access_layer.implementation_classes.customer_postgres_dao import CustomerPostgresDAO
 from entities.customer import Customer
 from entities.account import Account
+from service_layer.implementation_services.account_postgres_service import AccountPostgresService
 from service_layer.implementation_services.customer_postgres_service import CustomerPostgresService
 from service_layer.implementation_services.customer_service_imp import CustomerServiceImp
+from service_layer.implementation_services.account_service_imp import AccountServiceImp
+import logging
 
-# from service_layer.implementation_services.account_service_imp import AccountServiceImp
+logging.basicConfig(filename="records.log", level=logging.DEBUG, format=f"%(asctime)s %(levelname)s %(message)s")
 
 app: Flask = Flask(__name__)
 
 customer_dao = CustomerPostgresDAO()
 customer_service = CustomerPostgresService(customer_dao)
+account_dao = AccountPostgresDAO()
+account_service = AccountPostgresService(account_dao)
 
 
 @app.post("/customer")
@@ -60,7 +68,6 @@ def get_all_customers_information():
     return jsonify(customers_as_dictionary)
 
 
-# Not Working
 @app.patch("/customer/<customer_id>")
 def update_customer_information(customer_id: str):
     try:
@@ -87,6 +94,75 @@ def delete_customer_information(customer_id: str):
         return "Customer with id {} was deleted successfully".format(customer_id)
     else:
         return "Something went wrong: Customer with id {} was not deleted".format(customer_id)
+
+
+@app.post("/account")
+def create_account():
+    try:
+        body = request.get_json()
+        new_account = Account(
+            body["balance"],
+            body["accountId"],
+            body["customerId"]
+        )
+        created_account = account_service.service_create_account(new_account)
+        created_account_as_dictionary = created_account.account_as_dictionary()
+        return jsonify(created_account_as_dictionary), 201
+
+    except DuplicateAccountIdException as e:
+        error_message = {"errorMessage": str(e)}
+        return jsonify(error_message), 400
+
+
+@app.get("/account/<account_id>")
+def get_account_information(account_id: str):
+    try:
+        result = account_service.service_get_account_by_id(int(account_id))
+        result_as_dictionary = result.account_as_dictionary()
+        result_as_json = jsonify(result_as_dictionary)
+        return result_as_json
+    except AccountNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
+
+
+@app.get("/account")
+def get_all_accounts_information():
+    accounts_as_accounts = account_service.service_get_all_accounts()
+    accounts_as_dictionary = []
+    for accounts in accounts_as_accounts:
+        account_dictionary = accounts.account_as_dictionary()
+        accounts_as_dictionary.append(account_dictionary)
+    return jsonify(accounts_as_dictionary)
+
+
+# @app.patch("/account/deposit/<account_id>")
+# def deposit_from_account_by_id(account_id: str):
+#     try:
+#         account_data = request.get_json()
+#         new_account = Account(
+#             account_data["balance"],
+#             account_data["customerId"],
+#             int(account_id)
+#         )
+#         updated_account = account_service.service_deposit_into_account_by_id(new_account)
+#         updated_account_as_dictionary = updated_account.account_as_dictionary()
+#         return jsonify(updated_account_as_dictionary())
+#
+#     except AccountNotFoundException as e:
+#         exception_dictionary = {"message": str(e)}
+#         exception_json = jsonify(exception_dictionary)
+#         return exception_json
+
+
+@app.delete("/account/<account_id>")
+def delete_account_information(account_id: str):
+    result = account_service.service_delete_account_by_id(int(account_id))
+    if result:
+        return "Account ID {} was deleted successfully".format(account_id)
+    else:
+        return "Something went wrong: Account ID {} was not deleted".format(account_id)
 
 
 app.run()
