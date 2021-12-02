@@ -30,17 +30,9 @@ class CustomerPostgresService(CustomerService):
     def service_update_customer_by_id(self, customer: Customer) -> Customer:
         customer_list = self.customer_dao.get_all_customers()
         for current_customer in customer_list:
-            if current_customer.customer_id != customer.customer_id and customer.customer_id >= current_customer.customer_id:
-                raise CustomerNotFoundException("This customer could not be found in the database")
-            else:
+            if current_customer.customer_id == customer.customer_id:
                 return self.customer_dao.update_customer_by_id(customer)
-
-    # if current_customer.customer_id == customer.customer_id:
-    #     return self.customer_dao.update_customer_by_id(customer)
-    # elif current_customer.customer_id != customer.customer_id and current_customer.customer_id > len(customer_list):
-    #     return self.customer_dao.update_customer_by_id(customer)
-    # else:
-    #     raise CustomerNotFoundException("This customer could not be found in the database")
+        raise CustomerNotFoundException("This customer could not be found in the database")
 
     def service_delete_customer_by_id(self, customer_id: int) -> bool:
         return self.customer_dao.delete_customer_by_id(customer_id)
