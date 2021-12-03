@@ -1,4 +1,5 @@
 from custom_exceptions.account_not_found_exception import AccountNotFoundException
+from custom_exceptions.customer_not_found_exception import CustomerNotFoundException
 from custom_exceptions.duplicate_account_id_exception import DuplicateAccountIdException
 from custom_exceptions.insufficient_funds_exception import InsufficientFundsException
 from data_access_layer.implementation_classes.account_postgres_dao import AccountPostgresDAO
@@ -39,12 +40,27 @@ class AccountPostgresService(AccountService):
         for account_to_withdraw in account_list:
             if account_to_withdraw.account_id == account.account_id:
                 if account_to_withdraw.customer_id == account.customer_id:
-                    if account_to_withdraw.balance - account.balance > 0:
+                    if account_to_withdraw.balance - account.balance >= 0:
                         return self.account_dao.withdraw_from_account_by_id(account)
-        raise InsufficientFundsException("You do not have enough money in your account")
+                    else:
+                        raise InsufficientFundsException("You do not have enough money in your account")
+                else:
+                    raise CustomerNotFoundException("This customer could not be found in the database")
+        raise AccountNotFoundException("This account could not be found in the database")
 
     def service_transfer_money_between_accounts_by_their_ids(self, account: Account) -> Account:
-        pass
+        account_list = self.account_dao.get_all_accounts()
+        for transferring_account in account_list:
+            if transferring_account.customer_id == account.customer_id:
+                if transferring_account.balance - account.balance >= 0:
+                    for account_to_transfer_to in account_list:
+                        if account_to_transfer_to.customer_id == account.customer_id:
+                            return self.account_dao.transfer_money_between_accounts_by_their_ids(account)
+                else:
+                    raise InsufficientFundsException("You do not have enough money in your account")
+            else:
+                raise CustomerNotFoundException("This customer could not be found in the database")
+        raise AccountNotFoundException("This account could not be found in the database")
 
     def service_delete_account_by_id(self, account_id: int) -> bool:
         return self.account_dao.delete_account_by_id(account_id)
