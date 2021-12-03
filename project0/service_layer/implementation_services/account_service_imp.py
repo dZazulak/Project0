@@ -1,7 +1,7 @@
 from data_access_layer.implementation_classes.account_dao_imp import AccountDAOImp
 from entities.account import Account
 from service_layer.abstract_services.account_service import AccountService
-from custom_exceptions.account_already_created_exception import AccountAlreadyCreatedException
+from custom_exceptions.duplicate_account_id_exception import DuplicateAccountIdException
 from custom_exceptions.customer_not_found_exception import CustomerNotFoundException
 from custom_exceptions.account_not_found_exception import AccountNotFoundException
 
@@ -14,7 +14,7 @@ class AccountServiceImp(AccountService):
     def service_create_account(self, account: Account) -> Account:
         for current_account in self.account_dao.account_list:
             if current_account.customer_id == account.customer_id and current_account.account_id == account.account_id:
-                raise AccountAlreadyCreatedException("Account is already created")
+                raise DuplicateAccountIdException("Account is already created")
             else:
                 return self.account_dao.create_account(account)
 

@@ -31,30 +31,27 @@ class AccountPostgresDAO(AccountDAO):
             account_list.append(Account(*account))
         return account_list
 
-    def update_account_balance_by_account_id(self, account: Account) -> Account:
+    def deposit_into_account_by_id(self, account: Account) -> Account:
+        sql = "select balance from account where account_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, [account.account_id])
+        connection.commit()
+        balance = cursor.fetchone()[0]
+        account.balance += balance
+
+        sql = "update account set balance = %s where account_id = %s returning balance"
+        cursor = connection.cursor()
+        cursor.execute(sql, (account.balance, account.account_id))
+        connection.commit()
+        return account
+
+    def withdraw_from_account_by_id(self, account: Account) -> Account:
         sql = "update account set balance = %s where account_id = %s returning balance"
         cursor = connection.cursor()
         cursor.execute(sql, (account.balance, account.account_id))
         balance = cursor.fetchone()[0]
         account.balance = balance
         return account
-
-    # Same code for both deposit and withdraw
-    # def deposit_into_account_by_id(self, account: Account) -> Account:
-    #     sql = "update account set balance = %s where account_id = %s returning balance"
-    #     cursor = connection.cursor()
-    #     cursor.execute(sql, (account.balance, account.account_id))
-    #     balance = cursor.fetchone()[0]
-    #     account.balance = balance
-    #     return account
-    #
-    # def withdraw_from_account_by_id(self, account: Account) -> Account:
-    #     sql = "update account set balance = %s where account_id = %s returning balance"
-    #     cursor = connection.cursor()
-    #     cursor.execute(sql, (account.balance, account.account_id))
-    #     balance = cursor.fetchone()[0]
-    #     account.balance = balance
-    #     return account
 
     def transfer_money_between_accounts_by_their_ids(self, account: Account) -> Account:
         pass

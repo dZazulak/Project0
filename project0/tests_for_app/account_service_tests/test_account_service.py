@@ -1,4 +1,4 @@
-from custom_exceptions.account_already_created_exception import AccountAlreadyCreatedException
+from custom_exceptions.duplicate_account_id_exception import AccountAlreadyCreatedException
 from data_access_layer.implementation_classes.account_dao_imp import AccountDAOImp
 from entities.account import Account
 from service_layer.implementation_services.account_service_imp import AccountServiceImp

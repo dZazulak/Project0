@@ -137,23 +137,23 @@ def get_all_accounts_information():
     return jsonify(accounts_as_dictionary)
 
 
-# @app.patch("/account/deposit/<account_id>")
-# def deposit_from_account_by_id(account_id: str):
-#     try:
-#         account_data = request.get_json()
-#         new_account = Account(
-#             account_data["balance"],
-#             account_data["customerId"],
-#             int(account_id)
-#         )
-#         updated_account = account_service.service_deposit_into_account_by_id(new_account)
-#         updated_account_as_dictionary = updated_account.account_as_dictionary()
-#         return jsonify(updated_account_as_dictionary())
-#
-#     except AccountNotFoundException as e:
-#         exception_dictionary = {"message": str(e)}
-#         exception_json = jsonify(exception_dictionary)
-#         return exception_json
+@app.patch("/account/deposit/<account_id>/<customer_id>")
+def deposit_from_account_by_id(account_id: str, customer_id: str):
+    try:
+        account_data = request.get_json()
+        new_account = Account(
+            account_data["balance"],
+            int(account_id),
+            int(customer_id)
+        )
+        updated_account = account_service.service_deposit_into_account_by_id(new_account)
+        updated_account_as_dictionary = updated_account.account_as_dictionary()
+        return jsonify(updated_account_as_dictionary)
+
+    except AccountNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
 
 
 @app.delete("/account/<account_id>")
