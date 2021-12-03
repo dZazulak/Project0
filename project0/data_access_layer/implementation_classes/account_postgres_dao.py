@@ -46,11 +46,17 @@ class AccountPostgresDAO(AccountDAO):
         return account
 
     def withdraw_from_account_by_id(self, account: Account) -> Account:
+        sql = "select balance from account where account_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, [account.account_id])
+        connection.commit()
+        balance = cursor.fetchone()[0]
+        new_balance = balance - account.balance
+
         sql = "update account set balance = %s where account_id = %s returning balance"
         cursor = connection.cursor()
-        cursor.execute(sql, (account.balance, account.account_id))
-        balance = cursor.fetchone()[0]
-        account.balance = balance
+        cursor.execute(sql, (new_balance, account.account_id))
+        connection.commit()
         return account
 
     def transfer_money_between_accounts_by_their_ids(self, account: Account) -> Account:
