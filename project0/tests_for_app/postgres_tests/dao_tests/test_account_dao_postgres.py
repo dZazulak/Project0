@@ -5,6 +5,7 @@ account_dao = AccountPostgresDAO()
 account: Account = Account(50, 1, 1)
 account_to_delete = Account(1, 3, 1)
 account_to_deposit = Account(5, 2, 1)
+account_to_withdraw = Account(1, 17, 17)
 
 
 def test_create_account_success():
@@ -30,5 +31,11 @@ def test_delete_account_success():
 
 def test_deposit_account_success():
     account_to_be_deposited = account_dao.get_account_by_id(2)
-    deposited_account = account_dao.update_account_balance_by_account_id(account_to_be_deposited)
+    deposited_account = account_dao.deposit_into_account_by_id(account_to_be_deposited)
     assert deposited_account
+
+
+def test_withdraw_account_success():
+    account_to_withdrew = account_dao.get_account_by_id(17)
+    withdrew_account = account_dao.withdraw_from_account_by_id(account_to_withdrew)
+    assert withdrew_account
