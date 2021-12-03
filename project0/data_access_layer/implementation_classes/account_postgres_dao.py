@@ -35,12 +35,10 @@ class AccountPostgresDAO(AccountDAO):
         sql = "select balance from account where account_id = %s"
         cursor = connection.cursor()
         cursor.execute(sql, [account.account_id])
-        connection.commit()
         balance = cursor.fetchone()[0]
         account.balance += balance
 
         sql = "update account set balance = %s where account_id = %s returning balance"
-        cursor = connection.cursor()
         cursor.execute(sql, (account.balance, account.account_id))
         connection.commit()
         return account
@@ -49,13 +47,12 @@ class AccountPostgresDAO(AccountDAO):
         sql = "select balance from account where account_id = %s"
         cursor = connection.cursor()
         cursor.execute(sql, [account.account_id])
-        connection.commit()
         balance = cursor.fetchone()[0]
         new_balance = balance - account.balance
 
         sql = "update account set balance = %s where account_id = %s returning balance"
-        cursor = connection.cursor()
         cursor.execute(sql, (new_balance, account.account_id))
+        account.balance = cursor.fetchone()[0]
         connection.commit()
         return account
 
