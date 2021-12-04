@@ -4,6 +4,7 @@ from custom_exceptions.duplicate_customer_id_exception import DuplicateCustomerI
 from custom_exceptions.customer_not_found_exception import CustomerNotFoundException
 from custom_exceptions.account_not_found_exception import AccountNotFoundException
 from custom_exceptions.duplicate_account_id_exception import DuplicateAccountIdException
+from custom_exceptions.insufficient_funds_exception import InsufficientFundsException
 from data_access_layer.implementation_classes.account_postgres_dao import AccountPostgresDAO
 from data_access_layer.implementation_classes.customer_dao_imp import CustomerDAOImp
 from data_access_layer.implementation_classes.account_dao_imp import AccountDAOImp
@@ -137,7 +138,7 @@ def get_all_accounts_information():
     return jsonify(accounts_as_dictionary)
 
 
-@app.patch("/account/deposit/<account_id>/<customer_id>")
+@app.patch("/account/deposit/<account_id>/customer/<customer_id>")
 def deposit_from_account_by_id(account_id: str, customer_id: str):
     try:
         account_data = request.get_json()
@@ -154,6 +155,40 @@ def deposit_from_account_by_id(account_id: str, customer_id: str):
         exception_dictionary = {"message": str(e)}
         exception_json = jsonify(exception_dictionary)
         return exception_json
+
+
+@app.patch("/account/withdraw/<account_id>/customer/<customer_id>")
+def withdraw_from_account_by_id(account_id: str, customer_id: str):
+    try:
+        account_data = request.get_json()
+        new_account = Account(
+            account_data["balance"],
+            int(account_id),
+            int(customer_id)
+        )
+        updated_account = account_service.service_withdraw_from_account_by_id(new_account)
+        updated_account_as_dictionary = updated_account.account_as_dictionary()
+        return jsonify(updated_account_as_dictionary)
+
+    except InsufficientFundsException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
+
+    except AccountNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
+
+    except CustomerNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
+
+
+@app.patch("/account/transfer/<transfer_id>/<receive_id>/customer/<customer_id>")
+def transfer_between_accounts_by_id(transfer_id: str, receive_id: str, customer_id: str):
+    pass
 
 
 @app.delete("/account/<account_id>")
