@@ -5,6 +5,7 @@ from custom_exceptions.customer_not_found_exception import CustomerNotFoundExcep
 from custom_exceptions.account_not_found_exception import AccountNotFoundException
 from custom_exceptions.duplicate_account_id_exception import DuplicateAccountIdException
 from custom_exceptions.insufficient_funds_exception import InsufficientFundsException
+from custom_exceptions.one_account_in_transfer_not_found_exception import OneAccountInTransferNotFoundException
 from data_access_layer.implementation_classes.account_postgres_dao import AccountPostgresDAO
 from data_access_layer.implementation_classes.customer_dao_imp import CustomerDAOImp
 from data_access_layer.implementation_classes.account_dao_imp import AccountDAOImp
@@ -188,7 +189,28 @@ def withdraw_from_account_by_id(account_id: str, customer_id: str):
 
 @app.patch("/account/transfer/<transfer_id>/<receive_id>/customer/<customer_id>")
 def transfer_between_accounts_by_id(transfer_id: str, receive_id: str, customer_id: str):
-    pass
+    try:
+        account_data = request.get_json()
+        new_transfer_account = Account(
+            account_data["balance"],
+            int(transfer_id),
+            int(customer_id)
+        )
+        new_receiver_account = Account(
+            account_data["balance"],
+            int(receive_id),
+            int(customer_id)
+        )
+        updated_transfer_account = account_service.service_withdraw_from_account_by_id(new_transfer_account)
+        updated_receiver_account = account_service.service_deposit_into_account_by_id(new_receiver_account)
+        updated_transfer_account_as_dictionary = updated_transfer_account.account_as_dictionary()
+        updated_receiver_account_as_dictionary = updated_receiver_account.account_as_dictionary()
+        return jsonify(updated_transfer_account_as_dictionary, updated_receiver_account_as_dictionary)
+
+    except OneAccountInTransferNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
 
 
 @app.delete("/account/<account_id>")
