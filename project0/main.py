@@ -187,7 +187,7 @@ def withdraw_from_account_by_id(account_id: str, customer_id: str):
         return exception_json
 
 
-@app.patch("/account/transfer/<transfer_id>/<receive_id>/customer/<customer_id>")
+@app.patch("/account/transfer/<transfer_id>/receive/<receive_id>/customer/<customer_id>")
 def transfer_between_accounts_by_id(transfer_id: str, receive_id: str, customer_id: str):
     try:
         account_data = request.get_json()
@@ -207,7 +207,12 @@ def transfer_between_accounts_by_id(transfer_id: str, receive_id: str, customer_
         updated_receiver_account_as_dictionary = updated_receiver_account.account_as_dictionary()
         return jsonify(updated_transfer_account_as_dictionary, updated_receiver_account_as_dictionary)
 
-    except OneAccountInTransferNotFoundException as e:
+    except AccountNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
+
+    except InsufficientFundsException as e:
         exception_dictionary = {"message": str(e)}
         exception_json = jsonify(exception_dictionary)
         return exception_json
