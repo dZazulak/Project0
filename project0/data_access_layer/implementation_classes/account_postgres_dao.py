@@ -56,8 +56,29 @@ class AccountPostgresDAO(AccountDAO):
         connection.commit()
         return account
 
-    def transfer_money_between_accounts_by_their_ids(self, account: Account) -> Account:
-        pass
+    def transfer_money_between_accounts_by_their_ids(self, transfer_account: Account, receiver_account: Account,
+                                                     balance_transferred: float):
+        sql = "select balance from account where account_id = %s"
+        cursor = connection.cursor()
+        cursor.execute(sql, [transfer_account.account_id])
+        transfer_account_balance = cursor.fetchone()[0]
+
+        sql = "select balance from account where account_id = %s"
+        cursor.execute(sql, [receiver_account.account_id])
+        receiver_account_balance = cursor.fetchone()[0]
+        receiver_account_balance.balance += balance_transferred
+        new_transfer_account_balance = balance_transferred - transfer_account_balance.balance
+
+        sql = "update account set balance %s where account_id = %s returning balance"
+        cursor.execute(sql, (receiver_account_balance.balance, receiver_account.account_id))
+        receiver_account_balance.balance = cursor.fetchone()[0]
+
+        sql = "update account set balance %s where account_id = %s returning balance"
+        cursor.execute(sql, (new_transfer_account_balance, transfer_account.account_id))
+        transfer_account_balance.balance = cursor.fetchone()[0]
+        connection.commit()
+        return self.transfer_money_between_accounts_by_their_ids(transfer_account, receiver_account, balance_transferred
+                                                                 )
 
     def delete_account_by_id(self, account_id: int) -> bool:
         sql = "delete from account where account_id = %s"
