@@ -2,6 +2,7 @@ from custom_exceptions.account_not_found_exception import AccountNotFoundExcepti
 from custom_exceptions.customer_not_found_exception import CustomerNotFoundException
 from custom_exceptions.duplicate_account_id_exception import DuplicateAccountIdException
 from custom_exceptions.insufficient_funds_exception import InsufficientFundsException
+from custom_exceptions.one_account_in_transfer_not_found_exception import OneAccountInTransferNotFoundException
 from data_access_layer.implementation_classes.account_postgres_dao import AccountPostgresDAO
 from entities.account import Account
 from service_layer.abstract_services.account_service import AccountService
@@ -48,19 +49,19 @@ class AccountPostgresService(AccountService):
                     raise CustomerNotFoundException("This customer could not be found in the database")
         raise AccountNotFoundException("This account could not be found in the database")
 
-    def service_transfer_money_between_accounts_by_their_ids(self, account: Account) -> Account:
+    def service_transfer_money_between_accounts_by_their_ids(self, transfer_account: Account, receiver_account: Account,
+                                                             balance_transferred: float):
         account_list = self.account_dao.get_all_accounts()
-        for transferring_account in account_list:
-            if transferring_account.customer_id == account.customer_id:
-                if transferring_account.balance - account.balance >= 0:
-                    for account_to_transfer_to in account_list:
-                        if account_to_transfer_to.customer_id == account.customer_id:
-                            return self.account_dao.transfer_money_between_accounts_by_their_ids(account)
-                else:
-                    raise InsufficientFundsException("You do not have enough money in your account")
-            else:
-                raise CustomerNotFoundException("This customer could not be found in the database")
-        raise AccountNotFoundException("This account could not be found in the database")
+        for account in account_list:
+            if account.account_id == transfer_account.account_id:
+                if account.account_id == receiver_account.account_id:
+                    if balance_transferred > transfer_account.balance:
+                        raise InsufficientFundsException("You do not have enough money in your account")
+                    return self.account_dao.transfer_money_between_accounts_by_their_ids(transfer_account,
+                                                                                         receiver_account,
+                                                                                         balance_transferred)
+                raise OneAccountInTransferNotFoundException(
+                    "One of the accounts in the transfer was not found in the database")
 
     def service_delete_account_by_id(self, account_id: int) -> bool:
         return self.account_dao.delete_account_by_id(account_id)
