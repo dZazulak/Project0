@@ -26,7 +26,7 @@ class AccountDAO(ABC):
         pass
 
     @abstractmethod
-    def transfer_money_between_accounts_by_their_ids(self, account: Account) -> Account:
+    def transfer_money_between_accounts_by_their_ids(self, transfer_account: Account, receiver_account: Account, balanced_transferred: float):
         pass
 
     @abstractmethod

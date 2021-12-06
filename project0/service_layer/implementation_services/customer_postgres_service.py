@@ -35,4 +35,8 @@ class CustomerPostgresService(CustomerService):
         raise CustomerNotFoundException("This customer could not be found in the database")
 
     def service_delete_customer_by_id(self, customer_id: int) -> bool:
-        return self.customer_dao.delete_customer_by_id(customer_id)
+        customer_list = self.customer_dao.get_all_customers()
+        for current_customer in customer_list:
+            if current_customer.customer_id == customer_id:
+                return self.customer_dao.delete_customer_by_id(customer_id)
+        raise CustomerNotFoundException("This customer could not be found in the database")

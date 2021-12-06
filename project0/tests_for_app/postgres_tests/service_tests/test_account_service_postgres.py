@@ -14,6 +14,8 @@ deposit_account_account_id_fail = Account(500, 1, 1)
 withdraw_account_account_id_fail = Account(500, 1, 17)
 withdraw_account_customer_id_fail = Account(500, 3, 9999)
 withdraw_account_funds_fail = Account(999999999, 3, 1)
+transfer_account_funds_fail = Account(1, 1, 1)
+receive_account = Account(1, 15, 1)
 
 
 def test_validate_create_account_method():
@@ -40,15 +42,19 @@ def test_validate_withdraw_from_account_by_id_method_account_id_fail():
         assert str(e) == "This account could not be found in the database"
 
 
-def test_validate_withdraw_from_account_by_id_method_customer_id_fail():
-    try:
-        account_service.service_withdraw_from_account_by_id(withdraw_account_customer_id_fail)
-    except CustomerNotFoundException as e:
-        assert str(e) == "This customer could not be found in the database"
-
-
 def test_validate_withdraw_from_account_by_id_method_funds_fail():
     try:
         account_service.service_withdraw_from_account_by_id(withdraw_account_funds_fail)
+        assert False
     except InsufficientFundsException as e:
         assert str(e) == "You do not have enough money in your account"
+
+
+def test_validate_transfer_from_account_by_id_method_account_id_fail():
+    try:
+        account_service.service_transfer_money_between_accounts_by_their_ids(transfer_account_funds_fail,
+                                                                             receive_account,
+                                                                             9999999)
+        assert False
+    except AccountNotFoundException as e:
+        assert str(e) == "This account could not be found in the database"

@@ -19,6 +19,7 @@ class AccountPostgresDAO(AccountDAO):
         cursor.execute(sql, [account_id])
         account_record = cursor.fetchone()
         account = Account(*account_record)
+        connection.commit()
         return account
 
     def get_all_accounts(self) -> list[Account]:
@@ -29,6 +30,7 @@ class AccountPostgresDAO(AccountDAO):
         account_list = []
         for account in account_records:
             account_list.append(Account(*account))
+        connection.commit()
         return account_list
 
     def deposit_into_account_by_id(self, account: Account) -> Account:
@@ -66,19 +68,16 @@ class AccountPostgresDAO(AccountDAO):
         sql = "select balance from account where account_id = %s"
         cursor.execute(sql, [receiver_account.account_id])
         receiver_account_balance = cursor.fetchone()[0]
-        receiver_account_balance.balance += balance_transferred
-        new_transfer_account_balance = balance_transferred - transfer_account_balance.balance
+        receiver_account_balance += balance_transferred
+        new_transfer_account_balance = transfer_account_balance - balance_transferred
 
-        sql = "update account set balance %s where account_id = %s returning balance"
-        cursor.execute(sql, (receiver_account_balance.balance, receiver_account.account_id))
-        receiver_account_balance.balance = cursor.fetchone()[0]
+        sql = "update account set balance = %s where account_id = %s returning balance"
+        cursor.execute(sql, (receiver_account_balance, receiver_account.account_id))
 
-        sql = "update account set balance %s where account_id = %s returning balance"
+        sql = "update account set balance = %s where account_id = %s returning balance"
         cursor.execute(sql, (new_transfer_account_balance, transfer_account.account_id))
-        transfer_account_balance.balance = cursor.fetchone()[0]
         connection.commit()
-        return self.transfer_money_between_accounts_by_their_ids(transfer_account, receiver_account, balance_transferred
-                                                                 )
+        return balance_transferred
 
     def delete_account_by_id(self, account_id: int) -> bool:
         sql = "delete from account where account_id = %s"

@@ -25,3 +25,17 @@ def test_catch_customer_not_found_for_update_method():
         assert False
     except CustomerNotFoundException as e:
         assert str(e) == "This customer could not be found in the database"
+
+
+def test_catch_customer_not_found_for_get_customer_method():
+    try:
+        customer_service.service_get_customer_by_id(5000)
+    except CustomerNotFoundException as e:
+        assert str(e) == "This customer could not be found in the database"
+
+
+def test_catch_customer_not_found_delete_customer_method():
+    try:
+        customer_service.service_delete_customer_by_id(100000)
+    except CustomerNotFoundException as e:
+        assert str(e) == "This customer could not be found in the database"

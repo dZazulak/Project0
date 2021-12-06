@@ -3,7 +3,7 @@ from entities.account import Account
 
 account_dao = AccountPostgresDAO()
 account: Account = Account(50, 1, 1)
-account_to_delete = Account(1, 3, 1)
+account_to_delete = Account(1, 11, 1)
 account_to_deposit = Account(5, 2, 1)
 account_to_withdraw = Account(1, 17, 17)
 
@@ -39,3 +39,11 @@ def test_withdraw_account_success():
     account_to_withdrew = account_dao.get_account_by_id(17)
     withdrew_account = account_dao.withdraw_from_account_by_id(account_to_withdrew)
     assert withdrew_account
+
+
+def test_transfer_for_transferring_account_success():
+    account_to_transfer = account_dao.get_account_by_id(3)
+    account_to_receive = account_dao.get_account_by_id(7)
+    transfer_account = account_dao.transfer_money_between_accounts_by_their_ids(account_to_transfer, account_to_receive,
+                                                                                1000)
+    return transfer_account

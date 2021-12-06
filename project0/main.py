@@ -91,11 +91,14 @@ def update_customer_information(customer_id: str):
 
 @app.delete("/customer/<customer_id>")
 def delete_customer_information(customer_id: str):
-    result = customer_service.service_delete_customer_by_id(int(customer_id))
-    if result:
-        return "Customer with id {} was deleted successfully".format(customer_id)
-    else:
-        return "Something went wrong: Customer with id {} was not deleted".format(customer_id)
+    try:
+        result = customer_service.service_delete_customer_by_id(int(customer_id))
+        if result:
+            return "Customer with id {} was deleted successfully".format(customer_id)
+    except CustomerNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
 
 
 @app.post("/account")
@@ -201,6 +204,7 @@ def transfer_between_accounts_by_id(transfer_id: str, receive_id: str, customer_
             int(receive_id),
             int(customer_id)
         )
+
         updated_transfer_account = account_service.service_withdraw_from_account_by_id(new_transfer_account)
         updated_receiver_account = account_service.service_deposit_into_account_by_id(new_receiver_account)
         updated_transfer_account_as_dictionary = updated_transfer_account.account_as_dictionary()
@@ -220,11 +224,14 @@ def transfer_between_accounts_by_id(transfer_id: str, receive_id: str, customer_
 
 @app.delete("/account/<account_id>")
 def delete_account_information(account_id: str):
-    result = account_service.service_delete_account_by_id(int(account_id))
-    if result:
-        return "Account ID {} was deleted successfully".format(account_id)
-    else:
-        return "Something went wrong: Account ID {} was not deleted".format(account_id)
+    try:
+        result = account_service.service_delete_account_by_id(int(account_id))
+        if result:
+            return "Account with id {} was deleted successfully".format(account_id)
+    except AccountNotFoundException as e:
+        exception_dictionary = {"message": str(e)}
+        exception_json = jsonify(exception_dictionary)
+        return exception_json
 
 
 app.run()

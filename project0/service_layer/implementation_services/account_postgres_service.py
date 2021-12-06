@@ -55,13 +55,19 @@ class AccountPostgresService(AccountService):
         for account in account_list:
             if account.account_id == transfer_account.account_id:
                 if account.account_id == receiver_account.account_id:
-                    if balance_transferred > transfer_account.balance:
+                    if transfer_account.balance >= balance_transferred:
+                        return self.account_dao.transfer_money_between_accounts_by_their_ids(transfer_account,
+                                                                                             receiver_account,
+                                                                                             balance_transferred)
+                    else:
                         raise InsufficientFundsException("You do not have enough money in your account")
-                    return self.account_dao.transfer_money_between_accounts_by_their_ids(transfer_account,
-                                                                                         receiver_account,
-                                                                                         balance_transferred)
-                raise OneAccountInTransferNotFoundException(
-                    "One of the accounts in the transfer was not found in the database")
+
+            else:
+                raise AccountNotFoundException("This account could not be found in the database")
 
     def service_delete_account_by_id(self, account_id: int) -> bool:
-        return self.account_dao.delete_account_by_id(account_id)
+        account_list = self.account_dao.get_all_accounts()
+        for account in account_list:
+            if account.account_id == account_id:
+                return self.account_dao.delete_account_by_id(account_id)
+        raise AccountNotFoundException("This account could not be found in the database")
